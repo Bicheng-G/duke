@@ -58,7 +58,11 @@
             cheerpjCreateDisplay(-1, -1, document.getElementById("container"));
             
             document.getElementById("status").textContent = "Loading Duke application...";
-            await cheerpjRunJar("application.jar");
+            // Compute the URL of the JAR relative to the *current* document rather than the domain root.
+            // Needed because GitHub Pages serves the site from /<username>.github.io/<repo>/ whereas
+            // a bare "application.jar" might be resolved as /application.jar in some environments.
+            const jarUrl = new URL("application.jar", window.location.href).pathname;
+            await cheerpjRunJar(jarUrl);
             
             document.getElementById("status").textContent = "Duke is ready!";
 

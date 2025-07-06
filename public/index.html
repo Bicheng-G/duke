@@ -58,7 +58,8 @@
             cheerpjCreateDisplay(-1, -1, document.getElementById("container"));
             
             document.getElementById("status").textContent = "Loading Duke application...";
-            await cheerpjRunJar("application.jar");
+            const jarUrl = new URL("application.jar", window.location.href).pathname;
+            await cheerpjRunJar(jarUrl);
             
             document.getElementById("status").textContent = "Duke is ready!";
 
