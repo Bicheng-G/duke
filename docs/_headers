@@ -1,0 +1,9 @@
+# Netlify headers for better CheerpJ performance
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+
+# JAR files should be cached but allow range requests
+/*.jar
+  Accept-Ranges: bytes
+  Cache-Control: public, max-age=31536000 
