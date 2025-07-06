@@ -1,11 +1,14 @@
 import command.Command;
+import demo.DemoTaskGenerator;
 import exception.DukeException;
 import parser.Parser;
 import storage.Storage;
+import tasklist.Task;
 import tasklist.TaskList;
 import ui.Ui;
 
 import java.io.*;
+import java.util.List;
 
 /**
  * The duke class is the main class of the program
@@ -22,11 +25,19 @@ public class Duke {
         storage = new Storage(filePath);
         try {
             taskList = new TaskList(storage.readFromFile());
+            
+            // If task list is empty, load demo tasks for first-time users
+            if (taskList.size() == 0) {
+                loadDemoTasks();
+            }
         } catch (DukeException e) {
             ui.exceptionMessage(e);
+            taskList = new TaskList();
+            loadDemoTasks();
         } catch (FileNotFoundException e) {
             ui.exceptionMessage(e);
             taskList = new TaskList();
+            loadDemoTasks();
         }
     }
 
@@ -35,20 +46,40 @@ public class Duke {
         storage = new Storage(filePath);
         try {
             taskList = new TaskList(storage.readFromFile());
+            
+            // If task list is empty, load demo tasks for first-time users
+            if (taskList.size() == 0) {
+                loadDemoTasks();
+            }
         } catch (DukeException e) {
             ui.exceptionMessage(e);
+            taskList = new TaskList();
+            loadDemoTasks();
         } catch (FileNotFoundException e) {
             ui.exceptionMessage(e);
             taskList = new TaskList();
+            loadDemoTasks();
         }
     }
 
+    private boolean isDemoMode = false;
+    
     public void run() {
         Ui.Welcome();
+        
+        // Initialize the suggestion system
+        ui.initializeSuggestionSystem(taskList);
+        
+        // Show demo welcome message if we loaded demo tasks
+        if (isDemoMode) {
+            System.out.println(DemoTaskGenerator.getWelcomeMessage());
+            ui.Separator();
+        }
+        
         boolean isExit = false;
         while(!isExit){
             try {
-                String userInput = ui.userInput();
+                String userInput = ui.userInputWithSuggestions();
                 ui.Separator();
                 Command c = Parser.parse(userInput, taskList);
                 c.execute(taskList, ui, storage);
@@ -58,6 +89,25 @@ public class Duke {
             } finally {
                 ui.Separator();
             }
+        }
+    }
+    
+    /**
+     * Load demo tasks for first-time users
+     */
+    private void loadDemoTasks() {
+        try {
+            List<Task> demoTasks = DemoTaskGenerator.generateDemoTasks();
+            for (Task task : demoTasks) {
+                taskList.addTask(task);
+            }
+            
+            // Save demo tasks to file
+            storage.writeToFile(taskList.getTasks());
+            isDemoMode = true;
+            
+        } catch (IOException e) {
+            System.err.println("Warning: Could not save demo tasks to file: " + e.getMessage());
         }
     }
 
@@ -80,6 +130,15 @@ public class Duke {
             e.printStackTrace(new PrintWriter(errors));
             return errors.toString();
         }
+    }
+
+    /**
+     * Get response from Duke for the given input
+     * @param input user input
+     * @return Duke's response
+     */
+    public String getResponse(String input) {
+        return dukeReply(input);
     }
 
     public static void main(String[] args){

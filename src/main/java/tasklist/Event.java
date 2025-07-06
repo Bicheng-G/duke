@@ -6,35 +6,49 @@ import java.time.format.FormatStyle;
 
 /**
  * An Event object holds event type of task which contains LocalDateTime variable
- *
+ * Now supports priorities and categories for better task organization.
  */
 public class Event extends Task{
 
-    protected LocalDateTime dateTime;
-
     public Event(String description, LocalDateTime dateTime){
-        super(description);
+        // Extract clean description and call super first
+        super(extractCleanDescription(description));
         this.type = "E";
         this.isDone = false;
         this.dateTime = dateTime;
     }
-
-    @Override
-    public String getDescription() {return description.substring(6,description.indexOf('/'));}
-
-    public String getDateTimeStr() {
-        return dateTime.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT));
+    
+    private static String extractCleanDescription(String description) {
+        String cleanDescription = description;
+        
+        // Remove "event " prefix
+        if (cleanDescription.startsWith("event ")) {
+            cleanDescription = cleanDescription.substring(6);
+        }
+        
+        // Remove "/at" date part
+        int atIndex = cleanDescription.indexOf(" /at ");
+        if (atIndex != -1) {
+            cleanDescription = cleanDescription.substring(0, atIndex);
+        }
+        
+        return cleanDescription;
     }
 
-    public LocalDateTime getDateTime(){return dateTime;}
-
     @Override
-    public String printTask (){
-        //print out every element in the array
-        return "[" + getType() +"]" + "[" + getStatusIcon() +"] " + getDescription() + "(at: " + getDateTimeStr() + ")";
+    public String getDescription() {
+        return description;
+    }
+
+    public String getDateTimeStr() {
+        return "(at: " + dateTime.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)) + ")";
+    }
+
+    public LocalDateTime getDateTime(){
+        return dateTime;
     }
 
     public String[] getKeyword (){
-        return description.split("/at");
+        return description.split(" ");
     }
 }

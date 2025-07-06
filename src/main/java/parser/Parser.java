@@ -25,6 +25,17 @@ public class Parser {
     public static String[] commandToArray(String text) {
         return text.split(" ",2);
     }
+    
+    /**
+     * <code>commandToArrayAdvanced</code> method splits user input for commands that need multiple parameters
+     *
+     * @param text is the user input
+     * @param limit maximum number of parts to split into
+     * @return an array of Strings
+     */
+    public static String[] commandToArrayAdvanced(String text, int limit) {
+        return text.split(" ", limit);
+    }
 
     /**
      *The parseDate method returns LocalDate object from user input
@@ -46,10 +57,11 @@ public class Parser {
      * @throws DateTimeParseException when input is not of pattern specified
      */
     public static LocalDateTime parseDateTime(String[] command) throws DateTimeParseException {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy HHmm");
-        LocalDateTime dateTime;
-        dateTime = LocalDateTime.parse(command[1].split(" /by | /at ")[1], formatter);
-        return dateTime;
+        // Extract the date/time part after /by or /at
+        String dateTimeString = command[1].split(" /by | /at ")[1];
+        
+        // Use SmartDateParser for flexible parsing
+        return SmartDateParser.parseDateTime(dateTimeString);
     }
 
     /**
@@ -61,9 +73,31 @@ public class Parser {
      */
     public static LocalDateTime parseDateTimeFromFile(String[] command) throws DateTimeParseException {
         DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT);
-        LocalDateTime dateTimeFromFile;
-        dateTimeFromFile = LocalDateTime.parse(command[1].split(" /by | /at ")[1], formatter);
-        return dateTimeFromFile;
+        String[] parts;
+        if (command[1].contains(" /by ") || command[1].contains(" /at ")) {
+            parts = command[1].split(" /by | /at ");
+        } else if (command[1].contains("/by ") || command[1].contains("/at ")) {
+            // Handle missing leading space before slash (legacy bug)
+            parts = command[1].split("/by |/at ");
+        } else {
+            throw new DateTimeParseException("Date/time token not found", command[1], 0);
+        }
+
+        if (parts.length < 2) {
+            throw new DateTimeParseException("Date/time token incomplete", command[1], 0);
+        }
+        String dateTimeStr = parts[1].trim();
+        // Remove enclosing parentheses and the "by:"/"at:" label if present
+        if (dateTimeStr.startsWith("(")) {
+            dateTimeStr = dateTimeStr.substring(1);
+        }
+        if (dateTimeStr.endsWith(")")) {
+            dateTimeStr = dateTimeStr.substring(0, dateTimeStr.length() - 1);
+        }
+        // Remove leading "by:" or "at:" and any extra whitespace
+        dateTimeStr = dateTimeStr.replaceFirst("^(by:|at:)\\s*", "").trim();
+
+        return LocalDateTime.parse(dateTimeStr, formatter);
     }
 
     /**
@@ -129,11 +163,15 @@ public class Parser {
             String keyword = command[1];
             return new SearchCommand(keyword);
         case HELP:
-            return new HelpCommand();
+            String helpTopic = command.length > 1 ? command[1].trim() : "";
+            return new command.EnhancedHelpCommand(helpTopic, taskList);
         case RESET:
             return new ResetCommand();
         case BYE:
             return new ByeCommand();
+        case EDIT:
+            String[] editCommand = commandToArrayAdvanced(text, 4);
+            return new EditCommand(editCommand);
         default:
             return new InvalidCommand("");
         }

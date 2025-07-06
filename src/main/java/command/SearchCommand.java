@@ -3,6 +3,7 @@ package command;
 import exception.DukeException;
 import storage.Storage;
 import tasklist.TaskList;
+import tasklist.TaskSearchEngine;
 import ui.Ui;
 
 import java.io.IOException;
@@ -26,9 +27,10 @@ public class SearchCommand extends Command{
      * @throws IOException when file not found
      */
     public void execute(TaskList taskList, Ui ui, Storage storage) throws DukeException {
-        TaskList taskByKeyword = taskList.getTaskByKeyword(keyword, taskList);
+        // Use enhanced search engine for better results
+        TaskList taskByKeyword = TaskSearchEngine.quickSearch(taskList, keyword);
         ui.printTaskList(taskByKeyword);
-        ui.printTaskByKeyword(taskByKeyword,keyword);
+        ui.printEnhancedSearchResult(taskByKeyword, keyword);
     }
 
 }

@@ -57,10 +57,10 @@ public class Storage {
                     toText = "todo [" + isDone + "] " + description + System.getProperty("line.separator");
                     break;
                 case "D":
-                    toText = "deadline [" + isDone + "] " + description +"/by " + task.getDateTimeStr() + System.getProperty("line.separator");
+                    toText = "deadline [" + isDone + "] " + description + " /by " + task.getDateTimeStr() + System.getProperty("line.separator");
                     break;
                 case "E":
-                    toText = "event [" + isDone + "] " + description +"/at " + task.getDateTimeStr()+ System.getProperty("line.separator");
+                    toText = "event [" + isDone + "] " + description + " /at " + task.getDateTimeStr() + System.getProperty("line.separator");
                     break;
             }
             assert toText != null;
